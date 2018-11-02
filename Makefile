@@ -1,7 +1,7 @@
-OBJS 	= myfind.o
-SOURCE	= myfind.c
-# HEADER  =  OrderedLinkedList.h
-OUT  	= myfind
+OBJS 	= myfind.o tree_interface.o
+SOURCE	= myfind.c tree_interface.c
+HEADER  = tree_interface.h
+OUT  	= ../myfind
 CC	= gcc
 FLAGS   = -g -c 
 
@@ -10,6 +10,9 @@ all: $(OBJS)
 
 myfind.o: myfind.c
 	$(CC) $(FLAGS) myfind.c
+
+tree_interface.o: tree_interface.c
+	$(CC) $(FLAGS) tree_interface.c
 
 clean:
 	rm -f $(OBJS) $(OUT)
