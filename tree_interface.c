@@ -84,9 +84,7 @@ void splitterMerger(int arr[12], int range[2], int depth){
       splitterMerger(arr, range, depth - 1);
       exit(0);
     }
-
-    wait(NULL);
-
+    
     //Before we return to the parent, we create the second child
     left = fork();
     if (left < 0)
