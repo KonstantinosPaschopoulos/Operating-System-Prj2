@@ -1,9 +1,9 @@
 OBJS 	= myfind.o tree_interface.o
 SOURCE	= myfind.c tree_interface.c
-HEADER  = tree_interface.h
+HEADER  = tree_interface.h mytypes.h
 OUT  	= ../myfind
 CC	= gcc
-FLAGS   = -g -c 
+FLAGS   = -g -c
 
 all: $(OBJS)
 	$(CC) -g $(OBJS) -o $(OUT)

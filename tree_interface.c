@@ -61,8 +61,6 @@ void splitterMerger(int arr[12], int range[2], int depth){
 void splitterMerger(int arr[12], int range[2], int depth){
   pid_t left, right;
 
-  printf("DEPTH %d\n", depth);
-
   if (depth == 1)
   {
     //When we reach a depth of 1 we need to call searching nodes
@@ -84,7 +82,7 @@ void splitterMerger(int arr[12], int range[2], int depth){
       splitterMerger(arr, range, depth - 1);
       exit(0);
     }
-    
+
     //Before we return to the parent, we create the second child
     left = fork();
     if (left < 0)
@@ -99,5 +97,20 @@ void splitterMerger(int arr[12], int range[2], int depth){
     }
 
     wait(NULL);
+  }
+}
+
+int skew(int start, int end, int flag){
+  //pairnw arithmo node, afairw 2^h -1 kai briskw to i
+  if (flag == 0)
+  {
+    //*start = *end / 2;
+    //distribute the entries evenly
+    return ((start + end) / 2);
+  }
+  else
+  {
+    //skew the number of entries
+
   }
 }
