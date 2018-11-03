@@ -43,14 +43,14 @@ int main(int argc, char **argv){
     }
     else if (strcmp(argv[i], "-d") == 0)
     {
-      // input = malloc(strlen(argv[i + 1]) + 1);
-      // if (input == NULL)
-      // {
-      //   perror("Unable to allocate space");
-      //   exit(-1);
-      // }
-      //
-      // strcpy(input, argv[i + 1]);
+      input = malloc(strlen(argv[i + 1]) + 1);
+      if (input == NULL)
+      {
+        perror("Unable to allocate space");
+        exit(-1);
+      }
+
+      strcpy(input, argv[i + 1]);
 
       flag_sum++;
       i++;
