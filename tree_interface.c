@@ -85,6 +85,8 @@ void splitterMerger(int arr[12], int range[2], int depth){
     //Waiting for both of the children to finish
     wait(&status);
     wait(&status);
+    remove(left_pipe);
+    remove(right_pipe);
     exit(0);
   }
 }
