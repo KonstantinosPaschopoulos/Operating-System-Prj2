@@ -4,12 +4,15 @@
 #ifndef MYTYPES_H
 #define MYTYPES_H
 
-struct record
-{
-   int Am;
-   char Name[15];
-   char Surname[25];
-   float Salary;
+typedef struct record{
+    long custid;
+    char FirstName[20];
+    char LastName[20];
+    char Street[20];
+    int HouseID;
+    char City[20];
+    char postcode[6];
+    float amount;
 } record;
 
 #endif
