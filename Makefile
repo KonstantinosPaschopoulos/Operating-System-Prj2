@@ -1,21 +1,23 @@
-OBJS 	= myfind.o tree_interface.o
-SOURCE	= myfind.c tree_interface.c
-HEADER  = tree_interface.h mytypes.h
-OUT  	= ../myfind
-CC	= gcc
-FLAGS   = -g -c
+all: 	myfind \
+	root \
+	splitterMerger \
+	leaf
 
-all: $(OBJS)
-	$(CC) -g $(OBJS) -o $(OUT)
+myfind: myfind.c
+	gcc -g myfind.c -o ../myfind
 
-myfind.o: myfind.c
-	$(CC) $(FLAGS) myfind.c
+root: root.c
+	gcc -g root.c -o root
 
-tree_interface.o: tree_interface.c
-	$(CC) $(FLAGS) tree_interface.c
+splitterMerger: splitterMerger.c
+	gcc -g splitterMerger.c -o splitterMerger
+
+leaf: leaf.c
+	gcc -g leaf.c -o leaf
 
 clean:
-	rm -f $(OBJS) $(OUT)
-
-count:
-	wc $(SOURCE) $(HEADER)
+	rm -f 	\
+		../myfind \
+		root \
+		splitterMerger \
+		leaf

@@ -12,7 +12,7 @@ that part and returns the results. It also returns its rum time.
 #include <unistd.h>
 #include "mytypes.h"
 
-//Correct way to call it: name of file, start, end, pattern
+//Correct way to call it: name of file, start, end, pattern, pipe
 int main(int argc, char **argv){
   record tempRec;
   char longBuffer[150];
@@ -37,7 +37,7 @@ int main(int argc, char **argv){
 
 
   //Loop until all the records the range specifies are processed
-  for (i = 0; i < (atoi(argv[3]) - atoi(argv[2])); i++)
+  for (i = 1; i < (atoi(argv[3]) - atoi(argv[2])); i++)
   {
     bytesRead = fread(&tempRec, sizeof(record), 1, ptr);
     if (bytesRead > 0)

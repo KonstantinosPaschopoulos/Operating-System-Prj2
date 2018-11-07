@@ -1,34 +1,37 @@
 /*
 File: myfind.c
-Here is the main of my app.
+Here is the main function of my app.
 */
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
 #include <sys/types.h>
+#include <sys/stat.h>
+#include <sys/wait.h>
 #include <unistd.h>
-#include "tree_interface.h"
+#include <errno.h>
+#include <string.h>
 
 int main(int argc, char **argv){
-  int flag_sum = 0, skew_flag = 0, height, i;
+  pid_t root;
+  int flag_sum = 0, height, i, status;
   char *input, *pattern;
-  int arr[12] = {1, 3, 4, 654, 234, 543, 34, 54, 34, 45, 34, 34};
-  int range[2];
-  range[0] = 0;
-  range[1] = 11;
+  char skew_flag[1], heightStr[150];
 
-  //checking the input from the command line
+  strcpy(skew_flag, "0");
+
+  //Checking the input from the command line
   if (argc > 8)
   {
     printf("Wrong arguments\n");
     exit(2);
   }
+
   for (i = 1; i < argc; i++)
   {
     if (strcmp(argv[i], "-s") == 0)
     {
-      skew_flag = 1;
+      strcpy(skew_flag, "1");
     }
     else if (strcmp(argv[i], "-h") == 0)
     {
@@ -38,6 +41,11 @@ int main(int argc, char **argv){
         printf("Height should be at least 1\n");
         exit(2);
       }
+
+      //Turning the height into a string in order to give it
+      //as an argument to the root process
+      snprintf(heightStr, sizeof(int), "%d", height);
+
       flag_sum++;
       i++;
     }
@@ -75,13 +83,34 @@ int main(int argc, char **argv){
       exit(2);
     }
   }
+
   if (flag_sum != 3)
   {
     printf("Flags: -h, -d and -p are mandatory\n");
     exit(2);
   }
 
-  splitterMerger(arr, range, height);
+  root = fork();
+  if (root < 0)
+  {
+    perror("Root Fork Failed");
+    exit(1);
+  }
+
+  if (root == 0)
+  {
+    //Calling the root process to start the whole thing
+    execl("root", "root", input, pattern, heightStr, skew_flag, NULL);
+
+    perror("Root failed to exec");
+    exit(1);
+  }
+
+  //After the root is finished, everything should be done
+  wait(&status);
+
+  free(input);
+  free(pattern);
 
   return 0;
 }
