@@ -37,7 +37,7 @@ int main(int argc, char **argv){
     exit(4);
   }
 
-  parentfd = open(argv[8], O_WRONLY);
+  parentfd = open(argv[5], O_WRONLY);
 
   //Loop until all the records the range specifies are processed
   for (i = 0; i < (atoi(argv[3]) - atoi(argv[2])); i++)
@@ -85,10 +85,6 @@ int main(int argc, char **argv){
 
       if (flag == 1)
       {
-        //printf("%lu %s %s ", tempRec.custid, tempRec.FirstName, tempRec.LastName);
-        //printf("%s %d %s ", tempRec.Street, tempRec.HouseID, tempRec.City);
-        //printf("%s %f\n", tempRec.postcode, tempRec.amount);
-
         strcpy(type, "R");
         write(parentfd, type, 1);
 
@@ -101,7 +97,7 @@ int main(int argc, char **argv){
       break;
     }
   }
-
+  
   strcpy(type, "T");
   write(parentfd, type, 1);
 

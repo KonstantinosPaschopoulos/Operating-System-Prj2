@@ -22,7 +22,7 @@ int main(int argc, char **argv){
   char *treeFifo = "druid";
   char end[150], type[1];
   long lSize;
-  FILE *ptr;
+  FILE *ptr, *output;
   record temp;
 
   //Creating the pipe to communicate with the tree
@@ -71,6 +71,13 @@ int main(int argc, char **argv){
     exit(1);
   }
 
+  output = fopen("output.txt", "w");
+  if (output == NULL)
+  {
+    perror("Couldn't create output file");
+    exit(-1);
+  }
+
   //Read the results from the splitterMerger nodes
   treefd = open(treeFifo, O_RDONLY);
   while (1)
@@ -84,6 +91,9 @@ int main(int argc, char **argv){
       read(treefd, &temp, sizeof(record));
 
       //Write the results to an ASCII file to be able to give them to the sort node
+      //printf("%lu %s %s ", temp.custid, temp.FirstName, temp.LastName);
+      //printf("%s %d %s ", temp.Street, temp.HouseID, temp.City);
+      //printf("%s %f\n", temp.postcode, temp.amount);
     }
     else
     {
@@ -95,13 +105,9 @@ int main(int argc, char **argv){
 
   //Waiting for the binary tree to finish searching and sending the results
   wait(&status);
+  fclose(output);
   close(treefd);
-  //remove(treeFifo);
-
-
-
-
-
+  remove(treeFifo);
 
   //Now we can call the sort() function to sort
   //the results the tree produced
