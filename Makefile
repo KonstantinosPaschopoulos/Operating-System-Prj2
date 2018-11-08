@@ -4,16 +4,16 @@ all: 	myfind \
 	leaf
 
 myfind: myfind.c
-	gcc -g myfind.c -o ../myfind
+	gcc -g -Wall myfind.c -o ../myfind
 
 root: root.c
-	gcc -g root.c -o root
+	gcc -g -Wall root.c -o root
 
 splitterMerger: splitterMerger.c
-	gcc -g splitterMerger.c -o splitterMerger
+	gcc -g -Wall splitterMerger.c -o splitterMerger
 
 leaf: leaf.c
-	gcc -g leaf.c -o leaf
+	gcc -g -Wall leaf.c -o leaf
 
 clean:
 	rm -f 	\

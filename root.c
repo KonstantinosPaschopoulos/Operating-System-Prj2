@@ -7,19 +7,33 @@ The root node orchestrates the whole program search.
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/types.h>
+#include <fcntl.h>
 #include <sys/stat.h>
 #include <sys/wait.h>
 #include <unistd.h>
 #include <errno.h>
+#include <string.h>
 #include "mytypes.h"
 
 //To call it use: name of input file, pattern, height, skew or not
 int main(int argc, char **argv){
   pid_t tree;
-  int status, recordsCount;
-  char end[150];
+  int status, recordsCount, treefd;
+  char *treeFifo = "druid";
+  char end[150], type[1];
   long lSize;
   FILE *ptr;
+  record temp;
+
+  //Creating the pipe to communicate with the tree
+  if (mkfifo(treeFifo, 0666) == -1)
+  {
+    if (errno != EEXIST)
+    {
+      perror("Tree FIFO");
+      exit(6);
+    }
+  }
 
   tree = fork();
   if (tree < 0)
@@ -50,15 +64,44 @@ int main(int argc, char **argv){
     //transform that number into a string in order to call the binary tree
     snprintf(end, sizeof(int), "%d", recordsCount);
 
-    //Calling the binary tree with the correct arguments
-    execl("splitterMerger", "splitterMerger", argv[1], argv[2], argv[3], argv[4], "0", end, argv[3], NULL);
+    //Calling the initial binary tree node
+    execl("splitterMerger", "splitterMerger", argv[1], argv[2], argv[3], argv[4], "0", end, argv[3], treeFifo, NULL);
 
     perror("Tree failed to exec");
     exit(1);
   }
 
-  //Waiting for the binary tree to finish searching
+  //Read the results from the splitterMerger nodes
+  treefd = open(treeFifo, O_RDONLY);
+  while (1)
+  {
+    read(treefd, type, 1);
+
+    //The children send T when they are about to send a time struct
+    //and R when they are about to send a record struct
+    if (strcmp(type, "R") == 0)
+    {
+      read(treefd, &temp, sizeof(record));
+
+      //Write the results to an ASCII file to be able to give them to the sort node
+    }
+    else
+    {
+      //After reading the times we no longer need to read data
+      break;
+    }
+  }
+
+
+  //Waiting for the binary tree to finish searching and sending the results
   wait(&status);
+  close(treefd);
+  //remove(treeFifo);
+
+
+
+
+
 
   //Now we can call the sort() function to sort
   //the results the tree produced

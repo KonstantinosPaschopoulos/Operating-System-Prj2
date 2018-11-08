@@ -7,18 +7,20 @@ that part and returns the results. It also returns its rum time.
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
 #include <sys/types.h>
+#include <sys/stat.h>
+#include <sys/wait.h>
+#include <fcntl.h>
+#include <string.h>
 #include <unistd.h>
+#include <errno.h>
 #include "mytypes.h"
 
 //Correct way to call it: name of file, start, end, pattern, pipe
 int main(int argc, char **argv){
   record tempRec;
-  char longBuffer[150];
-  char intBuffer[150];
-  char floatBuffer[150];
-  int i, bytesRead, flag;
+  char longBuffer[150], intBuffer[150], floatBuffer[150], type[1];
+  int i, bytesRead, flag, parentfd;
   FILE *ptr;
 
   ptr = fopen(argv[1], "rb");
@@ -35,9 +37,10 @@ int main(int argc, char **argv){
     exit(4);
   }
 
+  parentfd = open(argv[8], O_WRONLY);
 
   //Loop until all the records the range specifies are processed
-  for (i = 1; i < (atoi(argv[3]) - atoi(argv[2])); i++)
+  for (i = 0; i < (atoi(argv[3]) - atoi(argv[2])); i++)
   {
     bytesRead = fread(&tempRec, sizeof(record), 1, ptr);
     if (bytesRead > 0)
@@ -82,9 +85,14 @@ int main(int argc, char **argv){
 
       if (flag == 1)
       {
-        printf("%lu %s %s ", tempRec.custid, tempRec.FirstName, tempRec.LastName);
-        printf("%s %d %s ", tempRec.Street, tempRec.HouseID, tempRec.City);
-        printf("%s %f\n", tempRec.postcode, tempRec.amount);
+        //printf("%lu %s %s ", tempRec.custid, tempRec.FirstName, tempRec.LastName);
+        //printf("%s %d %s ", tempRec.Street, tempRec.HouseID, tempRec.City);
+        //printf("%s %f\n", tempRec.postcode, tempRec.amount);
+
+        strcpy(type, "R");
+        write(parentfd, type, 1);
+
+        write(parentfd, &tempRec, sizeof(record));
       }
     }
     else
@@ -94,6 +102,11 @@ int main(int argc, char **argv){
     }
   }
 
+  strcpy(type, "T");
+  write(parentfd, type, 1);
+
+  close(parentfd);
+  rewind(ptr);
   fclose(ptr);
 
   return 0;
