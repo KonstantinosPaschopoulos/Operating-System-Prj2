@@ -35,8 +35,8 @@ void skew(int start, int end, int flag, int *left_end, int *right_start){
 //Call it as: name of file, pattern, current height, skew, start, end, original height, pipe
 int main(int argc, char **argv){
   pid_t left, right;
-  int left_end, right_start, status, depth = atoi(argv[3]), rightfd, leftfd, parentfd, check;
-  char right_pipe[150], left_pipe[150], endStr[150], startStr[150], depthStr[150], type[1];
+  int left_end, right_start, status, depth = atoi(argv[3]), rightfd, leftfd, parentfd, type;
+  char right_pipe[150], left_pipe[150], endStr[150], startStr[150], depthStr[150];
   char rl_pipe[150], ll_pipe[150];
   record temp;
 
@@ -109,22 +109,22 @@ int main(int argc, char **argv){
     rightfd = open(rl_pipe, O_RDONLY);
     while (1)
     {
-      read(rightfd, type, 1);
+      read(rightfd, &type, sizeof(int));
 
       //The children send T when they are about to send a time struct
       //and R when they are about to send a record struct
-      if (strcmp(type, "R") == 0)
+      if (type == 1)
       {
         read(rightfd, &temp, sizeof(record));
 
         //Write the results to the pipe the parent opened for us
-        write(parentfd, type, 1);
+        write(parentfd, &type, sizeof(int));
         write(parentfd, &temp, sizeof(record));
       }
       else
       {
         //After reading the times we no longer need to read data
-        write(parentfd, type, 1);
+        write(parentfd, &type, sizeof(int));
         break;
       }
     }
@@ -133,20 +133,20 @@ int main(int argc, char **argv){
     leftfd = open(ll_pipe, O_RDONLY);
     while (1)
     {
-      read(leftfd, type, 1);
+      read(leftfd, &type, sizeof(int));
 
-      if (strcmp(type, "R") == 0)
+      if (type == 1)
       {
         read(leftfd, &temp, sizeof(record));
 
         //Write the results to the pipe the parent opened for us
-        write(parentfd, type, 1);
+        write(parentfd, &type, sizeof(int));
         write(parentfd, &temp, sizeof(record));
       }
       else
       {
         //After reading the times we no longer need to read data
-        write(parentfd, type, 1);
+        write(parentfd, &type, sizeof(int));
         break;
       }
     }
@@ -228,22 +228,22 @@ int main(int argc, char **argv){
     rightfd = open(right_pipe, O_RDONLY);
     while (1)
     {
-      read(rightfd, type, 1);
+      read(rightfd, &type, sizeof(int));
 
       //The children send T when they are about to send a time struct
       //and R when they are about to send a record struct
-      if (strcmp(type, "R") == 0)
+      if (type == 1)
       {
         read(rightfd, &temp, sizeof(record));
 
         //Write the results to the pipe the parent opened for us
-        write(parentfd, type, 1);
+        write(parentfd, &type, sizeof(int));
         write(parentfd, &temp, sizeof(record));
       }
       else
       {
         //After reading the times we no longer need to read data
-        write(parentfd, type, 1);
+        write(parentfd, &type, sizeof(int));
         break;
       }
     }
@@ -252,20 +252,20 @@ int main(int argc, char **argv){
     leftfd = open(left_pipe, O_RDONLY);
     while (1)
     {
-      read(leftfd, type, 1);
+      read(leftfd, &type, sizeof(int));
 
-      if (strcmp(type, "R") == 0)
+      if (type == 1)
       {
         read(leftfd, &temp, sizeof(record));
 
         //Write the results to the pipe the parent opened for us
-        write(parentfd, type, 1);
+        write(parentfd, &type, sizeof(int));
         write(parentfd, &temp, sizeof(record));
       }
       else
       {
         //After reading the times we no longer need to read data
-        write(parentfd, type, 1);
+        write(parentfd, &type, sizeof(int));
         break;
       }
     }

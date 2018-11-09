@@ -19,8 +19,8 @@ that part and returns the results. It also returns its rum time.
 //Correct way to call it: name of file, start, end, pattern, pipe
 int main(int argc, char **argv){
   record tempRec;
-  char longBuffer[150], intBuffer[150], floatBuffer[150], type[1];
-  int i, bytesRead, flag, parentfd;
+  char longBuffer[150], intBuffer[150], floatBuffer[150];
+  int i, bytesRead, flag, parentfd, type;
   FILE *ptr;
 
   ptr = fopen(argv[1], "rb");
@@ -85,8 +85,8 @@ int main(int argc, char **argv){
 
       if (flag == 1)
       {
-        strcpy(type, "R");
-        write(parentfd, type, 1);
+        type = 1;
+        write(parentfd, &type, sizeof(int));
 
         write(parentfd, &tempRec, sizeof(record));
       }
@@ -97,9 +97,9 @@ int main(int argc, char **argv){
       break;
     }
   }
-  
-  strcpy(type, "T");
-  write(parentfd, type, 1);
+
+  type = 0;
+  write(parentfd, &type, sizeof(int));
 
   close(parentfd);
   rewind(ptr);

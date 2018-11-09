@@ -18,9 +18,9 @@ The root node orchestrates the whole program search.
 //To call it use: name of input file, pattern, height, skew or not
 int main(int argc, char **argv){
   pid_t tree;
-  int status, recordsCount, treefd;
+  int status, recordsCount, treefd, type;
   char *treeFifo = "druid";
-  char end[150], type[1];
+  char end[150];
   long lSize;
   FILE *ptr, *output;
   record temp;
@@ -82,18 +82,18 @@ int main(int argc, char **argv){
   treefd = open(treeFifo, O_RDONLY);
   while (1)
   {
-    read(treefd, type, 1);
+    read(treefd, &type, sizeof(int));
 
     //The children send T when they are about to send a time struct
     //and R when they are about to send a record struct
-    if (strcmp(type, "R") == 0)
+    if (type == 1)
     {
       read(treefd, &temp, sizeof(record));
 
       //Write the results to an ASCII file to be able to give them to the sort node
-      //printf("%lu %s %s ", temp.custid, temp.FirstName, temp.LastName);
-      //printf("%s %d %s ", temp.Street, temp.HouseID, temp.City);
-      //printf("%s %f\n", temp.postcode, temp.amount);
+      fprintf(output, "%lu %s %s ", temp.custid, temp.FirstName, temp.LastName);
+      fprintf(output, "%s %d %s ", temp.Street, temp.HouseID, temp.City);
+      fprintf(output, "%s %f\n", temp.postcode, temp.amount);
     }
     else
     {
