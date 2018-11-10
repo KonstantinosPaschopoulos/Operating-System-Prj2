@@ -28,7 +28,7 @@ void sig_handler(int signo)
 
 //To call it use: name of input file, pattern, height, skew or not
 int main(int argc, char **argv){
-  pid_t tree;
+  pid_t tree, sort_pid;
   int status, recordsCount, treefd, type;
   char *treeFifo = "druid";
   char end[150], pid[10];
@@ -142,6 +142,22 @@ int main(int argc, char **argv){
 
   //Now we can call the sort() function to sort
   //the results the tree produced
+  sort_pid = fork();
+  if (sort_pid < 0)
+  {
+    perror("Sort Fork Failed");
+    exit(1);
+  }
+  if (sort_pid == 0)
+  {
+    execlp("sort", "sort", "output.txt", "-g", "-k", "1", NULL);
+
+    perror("Sort failed to exec");
+    exit(1);
+  }
+
+  wait(&status);
+  remove("output.txt");
 
   return 0;
 }
