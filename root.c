@@ -13,6 +13,7 @@ The root node orchestrates the whole program search.
 #include <unistd.h>
 #include <errno.h>
 #include <string.h>
+#include <time.h>
 #include "mytypes.h"
 
 //To call it use: name of input file, pattern, height, skew or not
@@ -24,6 +25,7 @@ int main(int argc, char **argv){
   long lSize;
   FILE *ptr, *output;
   record temp;
+  timesSM SM_times;
 
   //Creating the pipe to communicate with the tree
   if (mkfifo(treeFifo, 0666) == -1)
@@ -55,7 +57,7 @@ int main(int argc, char **argv){
     fseek(ptr, 0, SEEK_END);
     lSize = ftell(ptr);
 
-    recordsCount = lSize / sizeof(record);
+    recordsCount = (int) lSize / sizeof(record);
 
     rewind(ptr);
     fclose(ptr);
@@ -95,9 +97,19 @@ int main(int argc, char **argv){
       fprintf(output, "%s %d %s ", temp.Street, temp.HouseID, temp.City);
       fprintf(output, "%s %f\n", temp.postcode, temp.amount);
     }
-    else
+    else if (type == 0)
     {
-      //After reading the times we no longer need to read data
+      //Read all the times
+      read(treefd, &SM_times, sizeof(timesSM));
+      printf("Max Time of Searcher nodes %f\n", SM_times.maxS);
+      printf("Min Time of Searcher nodes %f\n", SM_times.minS);
+      printf("Average Time of Searcher nodes %f\n", SM_times.avgS);
+      printf("Max Time of splitter/merger nodes %f\n", SM_times.maxSM);
+      printf("Min Time of splitter/merger nodes %f\n", SM_times.minSM);
+      printf("Average Time of splitter/merger nodes %f\n", SM_times.avgSM);
+    }
+    else if (type == -1)
+    {
       break;
     }
   }

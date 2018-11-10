@@ -4,6 +4,7 @@
 #ifndef MYTYPES_H
 #define MYTYPES_H
 
+//The struct that holds the records as specified
 typedef struct record{
     long custid;
     char FirstName[20];
@@ -14,5 +15,21 @@ typedef struct record{
     char postcode[6];
     float amount;
 } record;
+
+//Each searcher will send one of these structs to their parent
+typedef struct timesS{
+  double time;
+} timesS;
+
+//Each splitterMerger node will send one of these structs
+//and every node will update it appropriately
+typedef struct timesSM{
+  double maxS;
+  double minS;
+  double avgS;
+  double maxSM;
+  double minSM;
+  double avgSM;
+} timesSM;
 
 #endif

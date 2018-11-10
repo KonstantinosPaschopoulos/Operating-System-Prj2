@@ -14,14 +14,20 @@ that part and returns the results. It also returns its rum time.
 #include <string.h>
 #include <unistd.h>
 #include <errno.h>
+#include <time.h>
 #include "mytypes.h"
 
 //Correct way to call it: name of file, start, end, pattern, pipe
 int main(int argc, char **argv){
   record tempRec;
+  timesS tempTimes;
   char longBuffer[150], intBuffer[150], floatBuffer[150];
   int i, bytesRead, flag, parentfd, type;
   FILE *ptr;
+  clock_t start_t, end_t;
+  double total_t;
+
+  start_t = clock();
 
   ptr = fopen(argv[1], "rb");
   if (ptr == NULL)
@@ -98,7 +104,17 @@ int main(int argc, char **argv){
     }
   }
 
+  end_t = clock();
+  total_t = (end_t - start_t) / (double) CLOCKS_PER_SEC;
+
+  tempTimes.time = total_t;
+
   type = 0;
+  write(parentfd, &type, sizeof(int));
+  write(parentfd, &tempTimes, sizeof(timesS));
+
+  //So that the parent can know when to stop
+  type = -1;
   write(parentfd, &type, sizeof(int));
 
   close(parentfd);

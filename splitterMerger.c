@@ -15,6 +15,7 @@ Finally they collect all the results and send them to their parent node.
 #include <string.h>
 #include <unistd.h>
 #include <errno.h>
+#include <time.h>
 #include "mytypes.h"
 
 void skew(int start, int end, int flag, int *left_end, int *right_start){
@@ -39,6 +40,11 @@ int main(int argc, char **argv){
   char right_pipe[150], left_pipe[150], endStr[150], startStr[150], depthStr[150];
   char rl_pipe[150], ll_pipe[150];
   record temp;
+  timesS leaf_times1, leaf_times2;
+  timesSM SM_times, sm_1, sm_2;
+  clock_t start_t, end_t;
+  double total_t;
+  //double min, max, avg;
 
   //Finding the new range
   //skew(atoi(argv[5]), atoi(argv[6]), atoi(argv[4]), &left_end, &right_start);
@@ -48,6 +54,7 @@ int main(int argc, char **argv){
   if (depth == 1)
   {
     //When we reach a depth of 1 we need to call two leaf nodes
+    start_t = clock();
 
     //Creating the pipe to communicate with the right leaf
     sprintf(rl_pipe, "RL%d", getpid());
@@ -121,10 +128,12 @@ int main(int argc, char **argv){
         write(parentfd, &type, sizeof(int));
         write(parentfd, &temp, sizeof(record));
       }
-      else
+      else if (type == 0)
       {
-        //After reading the times we no longer need to read data
-        write(parentfd, &type, sizeof(int));
+        read(rightfd, &leaf_times1, sizeof(timesS));
+      }
+      else if (type == -1)
+      {
         break;
       }
     }
@@ -143,13 +152,44 @@ int main(int argc, char **argv){
         write(parentfd, &type, sizeof(int));
         write(parentfd, &temp, sizeof(record));
       }
-      else
+      else if (type == 0)
       {
-        //After reading the times we no longer need to read data
-        write(parentfd, &type, sizeof(int));
+        read(leftfd, &leaf_times2, sizeof(timesS));
+      }
+      else if (type == -1)
+      {
         break;
       }
     }
+
+    //Finding the min, max, and average times of the leaf nodes before sending them
+    if (leaf_times1.time < leaf_times2.time)
+    {
+      SM_times.maxS = leaf_times2.time;
+      SM_times.minS = leaf_times1.time;
+    }
+    else
+    {
+      SM_times.maxS = leaf_times1.time;
+      SM_times.minS = leaf_times2.time;
+    }
+
+    SM_times.avgS = (leaf_times1.time + leaf_times2.time) / 2;
+
+    end_t = clock();
+    total_t = (end_t - start_t) / (double) CLOCKS_PER_SEC;
+
+    SM_times.maxSM = total_t;
+    SM_times.minSM = total_t;
+    SM_times.avgSM = total_t;
+
+    type = 0;
+    write(parentfd, &type, sizeof(int));
+    write(parentfd, &SM_times, sizeof(timesSM));
+
+    //After both searchers return the results we signal the parent to stop reading
+    type = -1;
+    write(parentfd, &type, sizeof(int));
 
     //Waiting for both of the children to finish
     wait(&status);
@@ -164,6 +204,8 @@ int main(int argc, char **argv){
   else
   {
     //If depth is not 1 we have to continue creating new splitter/merger nodes
+    start_t = clock();
+
     depth--;
     snprintf(depthStr, sizeof(int), "%d", depth);
 
@@ -240,10 +282,12 @@ int main(int argc, char **argv){
         write(parentfd, &type, sizeof(int));
         write(parentfd, &temp, sizeof(record));
       }
-      else
+      else if (type == 0)
       {
-        //After reading the times we no longer need to read data
-        write(parentfd, &type, sizeof(int));
+        read(rightfd, &sm_1, sizeof(timesSM));
+      }
+      else if (type == -1)
+      {
         break;
       }
     }
@@ -262,13 +306,73 @@ int main(int argc, char **argv){
         write(parentfd, &type, sizeof(int));
         write(parentfd, &temp, sizeof(record));
       }
-      else
+      else if (type == 0)
+      {
+        read(leftfd, &sm_2, sizeof(timesSM));
+      }
+      else if (type == -1)
       {
         //After reading the times we no longer need to read data
-        write(parentfd, &type, sizeof(int));
         break;
       }
     }
+
+    //Updating the times with the ones we received from the children
+    if (sm_1.maxS > sm_2.maxS)
+    {
+      SM_times.maxS = sm_1.maxS;
+    }
+    else
+    {
+      SM_times.maxS = sm_2.maxS;
+    }
+    if (sm_1.minS < sm_2.minS)
+    {
+      SM_times.minS = sm_1.minS;
+    }
+    else
+    {
+      SM_times.minS = sm_2.minS;
+    }
+    SM_times.avgS = (sm_1.avgS + sm_2.avgS) / 2;
+    if (sm_1.maxSM > sm_2.maxSM)
+    {
+      SM_times.maxSM = sm_1.maxSM;
+    }
+    else
+    {
+      SM_times.maxSM = sm_2.maxSM;
+    }
+    if (sm_1.minSM < sm_2.minSM)
+    {
+      SM_times.minSM = sm_1.minSM;
+    }
+    else
+    {
+      SM_times.minSM = sm_2.minSM;
+    }
+    SM_times.avgSM = (sm_1.avgSM + sm_2.avgSM) / 2;
+
+    //We also have to calculate the time of the node we are in
+    end_t = clock();
+    total_t = (end_t - start_t) / (double) CLOCKS_PER_SEC;
+
+    if (total_t > SM_times.maxSM)
+    {
+      SM_times.maxSM = total_t;
+    }
+    if (total_t < SM_times.minSM)
+    {
+      SM_times.minSM = total_t;
+    }
+    SM_times.avgSM = (SM_times.avgSM + total_t) / 2;
+
+    type = 0;
+    write(parentfd, &type, sizeof(int));
+    write(parentfd, &SM_times, sizeof(timesSM));
+
+    type = -1;
+    write(parentfd, &type, sizeof(int));
 
     //Waiting for both of the children to finish
     wait(&status);
