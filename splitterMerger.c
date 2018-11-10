@@ -15,7 +15,8 @@ Finally they collect all the results and send them to their parent node.
 #include <string.h>
 #include <unistd.h>
 #include <errno.h>
-#include <time.h>
+#include <sys/time.h>
+#include <signal.h>
 #include "mytypes.h"
 
 void skew(int start, int end, int flag, int *left_end, int *right_start){
@@ -42,9 +43,8 @@ int main(int argc, char **argv){
   record temp;
   timesS leaf_times1, leaf_times2;
   timesSM SM_times, sm_1, sm_2;
-  clock_t start_t, end_t;
+  struct timeval begin, end;
   double total_t;
-  //double min, max, avg;
 
   //Finding the new range
   //skew(atoi(argv[5]), atoi(argv[6]), atoi(argv[4]), &left_end, &right_start);
@@ -54,7 +54,7 @@ int main(int argc, char **argv){
   if (depth == 1)
   {
     //When we reach a depth of 1 we need to call two leaf nodes
-    start_t = clock();
+    gettimeofday(&begin, NULL);
 
     //Creating the pipe to communicate with the right leaf
     sprintf(rl_pipe, "RL%d", getpid());
@@ -78,7 +78,7 @@ int main(int argc, char **argv){
     {
       snprintf(startStr, sizeof(int), "%d", right_start);
 
-      execl("leaf", "leaf", argv[1], startStr, argv[6], argv[2], rl_pipe, NULL);
+      execl("leaf", "leaf", argv[1], startStr, argv[6], argv[2], rl_pipe, argv[9], NULL);
       exit(0);
     }
 
@@ -105,7 +105,7 @@ int main(int argc, char **argv){
     {
       snprintf(endStr, sizeof(int), "%d", left_end);
 
-      execl("leaf", "leaf", argv[1], argv[5], endStr, argv[2], ll_pipe, NULL);
+      execl("leaf", "leaf", argv[1], argv[5], endStr, argv[2], ll_pipe, argv[9], NULL);
       exit(0);
     }
 
@@ -118,8 +118,8 @@ int main(int argc, char **argv){
     {
       read(rightfd, &type, sizeof(int));
 
-      //The children send T when they are about to send a time struct
-      //and R when they are about to send a record struct
+      //The children send 0 when they are about to send a time struct
+      //and 1 when they are about to send a record struct
       if (type == 1)
       {
         read(rightfd, &temp, sizeof(record));
@@ -176,8 +176,8 @@ int main(int argc, char **argv){
 
     SM_times.avgS = (leaf_times1.time + leaf_times2.time) / 2;
 
-    end_t = clock();
-    total_t = (end_t - start_t) / (double) CLOCKS_PER_SEC;
+    gettimeofday(&end, NULL);
+    total_t = (double) (end.tv_usec - begin.tv_usec) / 1000000;
 
     SM_times.maxSM = total_t;
     SM_times.minSM = total_t;
@@ -204,7 +204,7 @@ int main(int argc, char **argv){
   else
   {
     //If depth is not 1 we have to continue creating new splitter/merger nodes
-    start_t = clock();
+    gettimeofday(&begin, NULL);
 
     depth--;
     snprintf(depthStr, sizeof(int), "%d", depth);
@@ -233,7 +233,7 @@ int main(int argc, char **argv){
       //We update the range and the depth before calling another node
       snprintf(startStr, sizeof(int), "%d", right_start);
 
-      execl("splitterMerger", "splitterMerger", argv[1], argv[2], depthStr, argv[4], startStr, argv[6], argv[7], right_pipe, NULL);
+      execl("splitterMerger", "splitterMerger", argv[1], argv[2], depthStr, argv[4], startStr, argv[6], argv[7], right_pipe, argv[9], NULL);
       exit(0);
     }
 
@@ -259,7 +259,7 @@ int main(int argc, char **argv){
     {
       snprintf(endStr, sizeof(int), "%d", left_end);
 
-      execl("splitterMerger", "splitterMerger", argv[1], argv[2], depthStr, argv[4], argv[5], endStr, argv[7], left_pipe, NULL);
+      execl("splitterMerger", "splitterMerger", argv[1], argv[2], depthStr, argv[4], argv[5], endStr, argv[7], left_pipe, argv[9], NULL);
       exit(0);
     }
 
@@ -272,8 +272,8 @@ int main(int argc, char **argv){
     {
       read(rightfd, &type, sizeof(int));
 
-      //The children send T when they are about to send a time struct
-      //and R when they are about to send a record struct
+      //The children send 0 when they are about to send a time struct
+      //and 1 when they are about to send a record struct
       if (type == 1)
       {
         read(rightfd, &temp, sizeof(record));
@@ -354,8 +354,8 @@ int main(int argc, char **argv){
     SM_times.avgSM = (sm_1.avgSM + sm_2.avgSM) / 2;
 
     //We also have to calculate the time of the node we are in
-    end_t = clock();
-    total_t = (end_t - start_t) / (double) CLOCKS_PER_SEC;
+    gettimeofday(&end, NULL);
+    total_t = (double) (end.tv_usec - begin.tv_usec) / 1000000;
 
     if (total_t > SM_times.maxSM)
     {

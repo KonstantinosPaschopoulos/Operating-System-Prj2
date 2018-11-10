@@ -14,7 +14,8 @@ that part and returns the results. It also returns its rum time.
 #include <string.h>
 #include <unistd.h>
 #include <errno.h>
-#include <time.h>
+#include <sys/time.h>
+#include <signal.h>
 #include "mytypes.h"
 
 //Correct way to call it: name of file, start, end, pattern, pipe
@@ -24,10 +25,10 @@ int main(int argc, char **argv){
   char longBuffer[150], intBuffer[150], floatBuffer[150];
   int i, bytesRead, flag, parentfd, type;
   FILE *ptr;
-  clock_t start_t, end_t;
+  struct timeval begin, end;
   double total_t;
 
-  start_t = clock();
+  gettimeofday(&begin, NULL);
 
   ptr = fopen(argv[1], "rb");
   if (ptr == NULL)
@@ -104,8 +105,8 @@ int main(int argc, char **argv){
     }
   }
 
-  end_t = clock();
-  total_t = (end_t - start_t) / (double) CLOCKS_PER_SEC;
+  gettimeofday(&end, NULL);
+  total_t = (double) (end.tv_usec - begin.tv_usec) / 1000000;
 
   tempTimes.time = total_t;
 
@@ -120,6 +121,8 @@ int main(int argc, char **argv){
   close(parentfd);
   rewind(ptr);
   fclose(ptr);
+  
+  kill(atoi(argv[6]), SIGUSR2);
 
   return 0;
 }

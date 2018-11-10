@@ -10,7 +10,8 @@ Here is the main function of my app.
 #include <sys/wait.h>
 #include <unistd.h>
 #include <errno.h>
-#include <time.h>
+#include <sys/time.h>
+#include <signal.h>
 #include <string.h>
 
 int main(int argc, char **argv){
@@ -18,10 +19,10 @@ int main(int argc, char **argv){
   int flag_sum = 0, height, i, status;
   char *input, *pattern;
   char skew_flag[1], heightStr[150];
-  clock_t start_t, end_t;
+  struct timeval begin, end;
   double total_t;
 
-  start_t = clock();
+  gettimeofday(&begin, NULL);
 
   strcpy(skew_flag, "0");
 
@@ -114,9 +115,9 @@ int main(int argc, char **argv){
   //After the root is finished, everything should be done
   wait(&status);
 
-  end_t = clock();
-  total_t = (end_t - start_t) / (double) CLOCKS_PER_SEC;
-  
+  gettimeofday(&end, NULL);
+  total_t = (double) (end.tv_usec - begin.tv_usec) / 1000000;
+
   printf("Turnaround Time %f\n", total_t);
 
   free(input);

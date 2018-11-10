@@ -13,19 +13,35 @@ The root node orchestrates the whole program search.
 #include <unistd.h>
 #include <errno.h>
 #include <string.h>
-#include <time.h>
+#include <sys/time.h>
+#include <signal.h>
 #include "mytypes.h"
+
+volatile sig_atomic_t num_signals = 0;
+
+void sig_handler(int signo)
+{
+  signal(SIGUSR2, sig_handler);
+
+  num_signals++;
+}
 
 //To call it use: name of input file, pattern, height, skew or not
 int main(int argc, char **argv){
   pid_t tree;
   int status, recordsCount, treefd, type;
   char *treeFifo = "druid";
-  char end[150];
+  char end[150], pid[10];
   long lSize;
   FILE *ptr, *output;
   record temp;
   timesSM SM_times;
+
+  if (signal(SIGUSR2, sig_handler) == SIG_ERR)
+  {
+    perror("Could not create signal handler");
+    exit(10);
+  }
 
   //Creating the pipe to communicate with the tree
   if (mkfifo(treeFifo, 0666) == -1)
@@ -65,9 +81,10 @@ int main(int argc, char **argv){
     //After finding out how many records it contains I have to
     //transform that number into a string in order to call the binary tree
     snprintf(end, sizeof(int), "%d", recordsCount);
+    snprintf(pid, 10, "%d", (int)getppid());
 
     //Calling the initial binary tree node
-    execl("splitterMerger", "splitterMerger", argv[1], argv[2], argv[3], argv[4], "0", end, argv[3], treeFifo, NULL);
+    execl("splitterMerger", "splitterMerger", argv[1], argv[2], argv[3], argv[4], "0", end, argv[3], treeFifo, pid, NULL);
 
     perror("Tree failed to exec");
     exit(1);
@@ -86,8 +103,8 @@ int main(int argc, char **argv){
   {
     read(treefd, &type, sizeof(int));
 
-    //The children send T when they are about to send a time struct
-    //and R when they are about to send a record struct
+    //The children send 0 when they are about to send a time struct
+    //and 1 when they are about to send a record struct
     if (type == 1)
     {
       read(treefd, &temp, sizeof(record));
@@ -120,6 +137,8 @@ int main(int argc, char **argv){
   fclose(output);
   close(treefd);
   remove(treeFifo);
+
+  printf("Root received %d SIGUSR2 signals\n", num_signals);
 
   //Now we can call the sort() function to sort
   //the results the tree produced
