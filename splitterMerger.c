@@ -19,37 +19,67 @@ Finally they collect all the results and send them to their parent node.
 #include <signal.h>
 #include "mytypes.h"
 
-void skew(int start, int end, int flag, int *left_end, int *right_start){
-  //pairnw arithmo node, afairw 2^h -1 kai briskw to i
+void skew(int searchers, int records_num, int searcher_num, int flag, int *start, int *end){
+  int sum_total, i, sum, j;
+
   if (flag == 0)
   {
     //Distribute the entries evenly
-    *left_end = ((start + end) / 2);
-    *right_start = ((start + end) / 2) + 1;
+    *start = (searcher_num - 1) * (records_num / searchers);
+
+    //Because the division (records_num / searchers) might sometimes leave a remainder
+    //the last searcher has to search until the end of the file
+    if (searcher_num == searchers)
+    {
+      *end = records_num;
+    }
+    else
+    {
+      *end = searcher_num * (records_num / searchers);
+    }
   }
   else
   {
     //Skew the number of entries
+    sum_total = 0;
+    for (i = 1; i <= (searcher_num - 1); i++)
+    {
+      sum = 0;
+      for (j = 1; j <= searchers; j++)
+      {
+        sum += j;
+      }
+      sum_total += (records_num * i) / sum;
+    }
+    *start = sum_total;
 
+    if (searcher_num == searchers)
+    {
+      *end = records_num;
+    }
+    else
+    {
+      sum = 0;
+      for (j = 1; j <= searchers; j++)
+      {
+        sum += j;
+      }
+      *end = sum_total + ((records_num * searcher_num) / sum);
+    }
   }
 }
 
-//Call it as: name of file, pattern, current height, skew, start, end, original height, pipe
+//Call it as: name of file, pattern, current height, skew, start, end, number of searchers, pipe, root pid, start of rangem end of range
 int main(int argc, char **argv){
   pid_t left, right;
-  int left_end, right_start, status, depth = atoi(argv[3]), rightfd, leftfd, parentfd, type;
-  char right_pipe[150], left_pipe[150], endStr[150], startStr[150], depthStr[150];
+  int search_start, search_end, status, depth = atoi(argv[3]), rightfd, leftfd, parentfd, type, tmp;
+  char right_pipe[150], left_pipe[150], endStr[150], startStr[150], depthStr[150], startRange[150], endRange[150];
   char rl_pipe[150], ll_pipe[150];
   record temp;
   timesS leaf_times1, leaf_times2;
   timesSM SM_times, sm_1, sm_2;
   struct timeval begin, end;
   double total_t;
-
-  //Finding the new range
-  //skew(atoi(argv[5]), atoi(argv[6]), atoi(argv[4]), &left_end, &right_start);
-  left_end = atoi(argv[6]); //to fix
-  right_start = atoi(argv[5]);  //to fix
 
   if (depth == 1)
   {
@@ -76,9 +106,11 @@ int main(int argc, char **argv){
 
     if (right == 0)
     {
-      snprintf(startStr, sizeof(int), "%d", right_start);
+      skew(atoi(argv[7]), atoi(argv[6]), atoi(argv[11]), atoi(argv[4]), &search_start, &search_end);
+      snprintf(startStr, sizeof(int), "%d", search_start);
+      snprintf(endStr, sizeof(int), "%d", search_end);
 
-      execl("leaf", "leaf", argv[1], startStr, argv[6], argv[2], rl_pipe, argv[9], NULL);
+      execl("leaf", "leaf", argv[1], startStr, endStr, argv[2], rl_pipe, argv[9], NULL);
       exit(0);
     }
 
@@ -103,9 +135,11 @@ int main(int argc, char **argv){
 
     if (left == 0)
     {
-      snprintf(endStr, sizeof(int), "%d", left_end);
+      skew(atoi(argv[7]), atoi(argv[6]), atoi(argv[10]), atoi(argv[4]), &search_start, &search_end);
+      snprintf(startStr, sizeof(int), "%d", search_start);
+      snprintf(endStr, sizeof(int), "%d", search_end);
 
-      execl("leaf", "leaf", argv[1], argv[5], endStr, argv[2], ll_pipe, argv[9], NULL);
+      execl("leaf", "leaf", argv[1], startStr, endStr, argv[2], ll_pipe, argv[9], NULL);
       exit(0);
     }
 
@@ -209,6 +243,9 @@ int main(int argc, char **argv){
     depth--;
     snprintf(depthStr, sizeof(int), "%d", depth);
 
+    //Finding the midpoint
+    tmp = (int)((atoi(argv[11]) + atoi(argv[10])) / 2);
+
     //Creating the pipe to communicate with the first child
     sprintf(right_pipe, "R%d", getpid());
     if (mkfifo(right_pipe, 0666) == -1)
@@ -230,10 +267,9 @@ int main(int argc, char **argv){
 
     if (right == 0)
     {
-      //We update the range and the depth before calling another node
-      snprintf(startStr, sizeof(int), "%d", right_start);
+      snprintf(startRange, sizeof(int), "%d", (tmp + 1));
 
-      execl("splitterMerger", "splitterMerger", argv[1], argv[2], depthStr, argv[4], startStr, argv[6], argv[7], right_pipe, argv[9], NULL);
+      execl("splitterMerger", "splitterMerger", argv[1], argv[2], depthStr, argv[4], argv[5], argv[6], argv[7], right_pipe, argv[9], startRange, argv[11], NULL);
       exit(0);
     }
 
@@ -257,9 +293,9 @@ int main(int argc, char **argv){
 
     if (left == 0)
     {
-      snprintf(endStr, sizeof(int), "%d", left_end);
+      snprintf(endRange, sizeof(int), "%d", tmp);
 
-      execl("splitterMerger", "splitterMerger", argv[1], argv[2], depthStr, argv[4], argv[5], endStr, argv[7], left_pipe, argv[9], NULL);
+      execl("splitterMerger", "splitterMerger", argv[1], argv[2], depthStr, argv[4], argv[5], argv[6], argv[7], left_pipe, argv[9], argv[10], endRange, NULL);
       exit(0);
     }
 

@@ -18,7 +18,7 @@ that part and returns the results. It also returns its rum time.
 #include <signal.h>
 #include "mytypes.h"
 
-//Correct way to call it: name of file, start, end, pattern, pipe
+//Correct way to call it: name of file, start, end, pattern, pipe, root pid
 int main(int argc, char **argv){
   record tempRec;
   timesS tempTimes;
@@ -46,7 +46,7 @@ int main(int argc, char **argv){
 
   parentfd = open(argv[5], O_WRONLY);
 
-  //Loop until all the records the range specifies are processed
+  //Loop until all the records in the given range are processed
   for (i = 0; i < (atoi(argv[3]) - atoi(argv[2])); i++)
   {
     bytesRead = fread(&tempRec, sizeof(record), 1, ptr);
@@ -121,7 +121,7 @@ int main(int argc, char **argv){
   close(parentfd);
   rewind(ptr);
   fclose(ptr);
-  
+
   kill(atoi(argv[6]), SIGUSR2);
 
   return 0;

@@ -16,6 +16,7 @@ The root node orchestrates the whole program search.
 #include <sys/time.h>
 #include <signal.h>
 #include "mytypes.h"
+#include <math.h>
 
 volatile sig_atomic_t num_signals = 0;
 
@@ -31,7 +32,7 @@ int main(int argc, char **argv){
   pid_t tree, sort_pid;
   int status, recordsCount, treefd, type;
   char *treeFifo = "druid";
-  char end[150], pid[10];
+  char end[150], pid[10], endRange[150];
   long lSize;
   FILE *ptr, *output;
   record temp;
@@ -80,11 +81,13 @@ int main(int argc, char **argv){
 
     //After finding out how many records it contains I have to
     //transform that number into a string in order to call the binary tree
-    snprintf(end, sizeof(int), "%d", recordsCount);
+    sprintf(end, "%d", recordsCount);
+
+    snprintf(endRange, sizeof(int), "%d", (int)pow(2, atoi(argv[3])));
     snprintf(pid, 10, "%d", (int)getppid());
 
     //Calling the initial binary tree node
-    execl("splitterMerger", "splitterMerger", argv[1], argv[2], argv[3], argv[4], "0", end, argv[3], treeFifo, pid, NULL);
+    execl("splitterMerger", "splitterMerger", argv[1], argv[2], argv[3], argv[4], "0", end, endRange, treeFifo, pid, "1", endRange, NULL);
 
     perror("Tree failed to exec");
     exit(1);
@@ -110,7 +113,7 @@ int main(int argc, char **argv){
       read(treefd, &temp, sizeof(record));
 
       //Write the results to an ASCII file to be able to give them to the sort node
-      fprintf(output, "%lu %s %s ", temp.custid, temp.FirstName, temp.LastName);
+      fprintf(output, "%lu %s %s ", temp.custid, temp.LastName, temp.FirstName);
       fprintf(output, "%s %d %s ", temp.Street, temp.HouseID, temp.City);
       fprintf(output, "%s %f\n", temp.postcode, temp.amount);
     }

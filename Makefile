@@ -12,7 +12,7 @@ myfind:   myfind.c
 
 root:   root.c
 	$(CC)  $(CFLAGS) root.c
-	$(CC)  root.o -o root
+	$(CC)  root.o -lm -o root
 
 splitterMerger:   splitterMerger.c
 	$(CC)  $(CFLAGS) splitterMerger.c
