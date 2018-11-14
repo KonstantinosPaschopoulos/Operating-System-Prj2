@@ -54,7 +54,7 @@ int main(int argc, char **argv){
 
       //Turning the height into a string in order to give it
       //as an argument to the root process
-      snprintf(heightStr, sizeof(int), "%d", height);
+      sprintf(heightStr, "%d", height);
 
       flag_sum++;
       i++;
@@ -95,8 +95,8 @@ int main(int argc, char **argv){
 
   if (root == 0)
   {
-    snprintf(skew, sizeof(int), "%d", skew_flag);
-    
+    sprintf(skew, "%d", skew_flag);
+
     //Calling the root process to start the whole thing
     execl("root", "root", input, pattern, heightStr, skew, NULL);
 

@@ -54,9 +54,9 @@ int main(int argc, char **argv){
     {
       //If everything went ok we can start searching for the pattern
       flag = 0;
-      snprintf(longBuffer, sizeof(long), "%lu", tempRec.custid);
-      snprintf(intBuffer, sizeof(int), "%d", tempRec.HouseID);
-      snprintf(floatBuffer, sizeof(float), "%f", tempRec.amount);
+      sprintf(longBuffer, "%lu", tempRec.custid);
+      sprintf(intBuffer, "%d", tempRec.HouseID);
+      sprintf(floatBuffer, "%f", tempRec.amount);
       if (strstr(longBuffer, argv[4]) != NULL)
       {
         flag = 1;

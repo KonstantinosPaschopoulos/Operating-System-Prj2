@@ -83,8 +83,8 @@ int main(int argc, char **argv){
     //transform that number into a string in order to call the binary tree
     sprintf(end, "%d", recordsCount);
 
-    snprintf(endRange, sizeof(int), "%d", (int)pow(2, atoi(argv[3])));
-    snprintf(pid, 10, "%d", (int)getppid());
+    sprintf(endRange,"%d", (int)pow(2, atoi(argv[3])));
+    sprintf(pid, "%d", (int)getppid());
 
     //Calling the initial binary tree node
     execl("splitterMerger", "splitterMerger", argv[1], argv[2], argv[3], argv[4], "0", end, endRange, treeFifo, pid, "1", endRange, NULL);

@@ -107,8 +107,8 @@ int main(int argc, char **argv){
     if (right == 0)
     {
       skew(atoi(argv[7]), atoi(argv[6]), atoi(argv[11]), atoi(argv[4]), &search_start, &search_end);
-      snprintf(startStr, sizeof(int), "%d", search_start);
-      snprintf(endStr, sizeof(int), "%d", search_end);
+      sprintf(startStr, "%d", search_start);
+      sprintf(endStr, "%d", search_end);
 
       execl("leaf", "leaf", argv[1], startStr, endStr, argv[2], rl_pipe, argv[9], NULL);
       exit(0);
@@ -136,8 +136,8 @@ int main(int argc, char **argv){
     if (left == 0)
     {
       skew(atoi(argv[7]), atoi(argv[6]), atoi(argv[10]), atoi(argv[4]), &search_start, &search_end);
-      snprintf(startStr, sizeof(int), "%d", search_start);
-      snprintf(endStr, sizeof(int), "%d", search_end);
+      sprintf(startStr, "%d", search_start);
+      sprintf(endStr, "%d", search_end);
 
       execl("leaf", "leaf", argv[1], startStr, endStr, argv[2], ll_pipe, argv[9], NULL);
       exit(0);
@@ -241,7 +241,7 @@ int main(int argc, char **argv){
     gettimeofday(&begin, NULL);
 
     depth--;
-    snprintf(depthStr, sizeof(int), "%d", depth);
+    sprintf(depthStr, "%d", depth);
 
     //Finding the midpoint
     tmp = (int)((atoi(argv[11]) + atoi(argv[10])) / 2);
@@ -267,7 +267,7 @@ int main(int argc, char **argv){
 
     if (right == 0)
     {
-      snprintf(startRange, sizeof(int), "%d", (tmp + 1));
+      sprintf(startRange, "%d", (tmp + 1));
 
       execl("splitterMerger", "splitterMerger", argv[1], argv[2], depthStr, argv[4], argv[5], argv[6], argv[7], right_pipe, argv[9], startRange, argv[11], NULL);
       exit(0);
@@ -293,7 +293,7 @@ int main(int argc, char **argv){
 
     if (left == 0)
     {
-      snprintf(endRange, sizeof(int), "%d", tmp);
+      sprintf(endRange, "%d", tmp);
 
       execl("splitterMerger", "splitterMerger", argv[1], argv[2], depthStr, argv[4], argv[5], argv[6], argv[7], left_pipe, argv[9], argv[10], endRange, NULL);
       exit(0);
