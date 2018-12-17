@@ -27,7 +27,7 @@ void sig_handler(int signo)
   num_signals++;
 }
 
-//To call it use: name of input file, pattern, height, skew or not
+//To call it use: name of input file, pattern, height, skew or not.
 int main(int argc, char **argv){
   pid_t tree, sort_pid;
   int status, recordsCount, treefd, type;

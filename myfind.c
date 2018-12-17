@@ -110,7 +110,7 @@ int main(int argc, char **argv){
   gettimeofday(&end, NULL);
   total_t = (double) (end.tv_usec - begin.tv_usec) / 1000000;
 
-  printf("Turnaround Time %f\n", total_t);
+  printf("Turnaround time %f\n", total_t);
 
   return 0;
 }

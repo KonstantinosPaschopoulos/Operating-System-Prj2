@@ -3,7 +3,7 @@ File: splitterMerger
 This file contains the code the splitter/merger nodes use.
 Firstly depending on the given height they create the necessary internal nodes.
 After that they call the leaf executables to do the searching.
-Finally they collect all the results and send them to their parent node.
+Finally, they collect all the results and send them to their parent node.
 */
 
 #include <stdio.h>

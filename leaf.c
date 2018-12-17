@@ -18,7 +18,7 @@ that part and returns the results. It also returns its rum time.
 #include <signal.h>
 #include "mytypes.h"
 
-//Correct way to call it: name of file, start, end, pattern, pipe, root pid
+//Correct way to call it: name of file, start, end, pattern, pipe, root pid.
 int main(int argc, char **argv){
   record tempRec;
   timesS tempTimes;
